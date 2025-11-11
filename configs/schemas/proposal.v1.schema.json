@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://albion.gov.uk/schemas/proposal/v1",
+  "title": "ALBION Policy Proposal",
+  "description": "Complete specification of a policy proposal with levers and impacts",
+  "type": "object",
+  "required": ["schema", "jurisdiction", "horizon_years", "levers", "targets"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "proposal/v1"
+    },
+    "jurisdiction": {
+      "type": "string",
+      "enum": ["UK", "England", "Scotland", "Wales", "NorthernIreland"]
+    },
+    "horizon_years": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Number of years in the forecast horizon"
+    },
+    "levers": {
+      "type": "object",
+      "description": "Policy instruments that can be adjusted",
+      "properties": {
+        "income_tax": {
+          "type": "object",
+          "properties": {
+            "basic_rate_pp": {"type": "number", "minimum": -10, "maximum": 10},
+            "higher_rate_pp": {"type": "number", "minimum": -10, "maximum": 10},
+            "additional_rate_pp": {"type": "number", "minimum": -10, "maximum": 10},
+            "personal_allowance_delta_gbp": {"type": "number"}
+          }
+        },
+        "nics": {
+          "type": "object",
+          "properties": {
+            "class1_main_pp": {"type": "number", "minimum": -5, "maximum": 5},
+            "class1_additional_pp": {"type": "number", "minimum": -5, "maximum": 5},
+            "class4_main_pp": {"type": "number", "minimum": -5, "maximum": 5},
+            "threshold_shift_gbp": {"type": "number"}
+          }
+        },
+        "vat": {
+          "type": "object",
+          "properties": {
+            "standard_rate_pp": {"type": "number", "minimum": -10, "maximum": 10},
+            "reduced_rate_pp": {"type": "number", "minimum": -10, "maximum": 10},
+            "exemption_changes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "category": {"type": "string"},
+                  "from_rate": {"type": "string", "enum": ["zero", "reduced", "standard"]},
+                  "to_rate": {"type": "string", "enum": ["zero", "reduced", "standard"]}
+                }
+              }
+            }
+          }
+        },
+        "corp_tax": {
+          "type": "object",
+          "properties": {
+            "main_rate_pp": {"type": "number", "minimum": -10, "maximum": 10},
+            "small_profits_rate_pp": {"type": "number", "minimum": -10, "maximum": 10}
+          }
+        },
+        "cgt": {
+          "type": "object",
+          "properties": {
+            "align_to_income_tax": {"type": "boolean"},
+            "higher_rate_pp": {"type": "number", "minimum": -20, "maximum": 20},
+            "annual_exempt_amount_delta_gbp": {"type": "number"}
+          }
+        },
+        "ets_carbon_price": {
+          "type": "object",
+          "properties": {
+            "start_gbp_per_tco2e": {"type": "number", "minimum": 0},
+            "ramp_ppy": {"type": "number", "description": "£ increase per year"}
+          }
+        },
+        "departmental": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dept"],
+            "properties": {
+              "dept": {"type": "string", "pattern": "^[A-Z]{2,10}$"},
+              "rdel_pct": {"type": "number", "minimum": -50, "maximum": 50},
+              "cdel_pct": {"type": "number", "minimum": -50, "maximum": 50}
+            }
+          }
+        },
+        "benefits": {
+          "type": "object",
+          "properties": {
+            "uc_uplift_pct": {"type": "number", "minimum": -20, "maximum": 50},
+            "state_pension_uplift_pct": {"type": "number", "minimum": -10, "maximum": 20},
+            "pension_credit_uplift_pct": {"type": "number", "minimum": -10, "maximum": 20}
+          }
+        }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "description": "What the policy aims to achieve",
+      "properties": {
+        "revenue_delta_gbp_bny": {"type": "number"},
+        "deficit_delta_gbp_bny": {"type": "number"},
+        "emissions_delta_mtco2e": {"type": "number"}
+      }
+    },
+    "impacts": {
+      "type": "object",
+      "description": "Calculated impacts (populated by agents)",
+      "properties": {
+        "distribution": {
+          "type": "object",
+          "properties": {
+            "decile_deltas_pct": {
+              "type": "array",
+              "items": {"type": "number"},
+              "minItems": 10,
+              "maxItems": 10
+            },
+            "gini_delta": {"type": "number"},
+            "poverty_rate_delta_pp": {"type": "number"}
+          }
+        },
+        "regional": {
+          "type": "object",
+          "description": "ITL1 region impacts",
+          "patternProperties": {
+            "^UK[A-Z]$": {
+              "type": "object",
+              "properties": {
+                "gdp_delta_pct": {"type": "number"},
+                "employment_delta_thousands": {"type": "number"}
+              }
+            }
+          }
+        },
+        "climate": {
+          "type": "object",
+          "properties": {
+            "emissions_delta_mtco2e": {"type": "number"},
+            "trajectory_2024_2037": {
+              "type": "array",
+              "items": {"type": "number"},
+              "description": "Annual emissions in MtCO2e"
+            },
+            "budget_compliance": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string", "enum": ["COMPLIANT", "TIGHT", "BREACH"]},
+                "headroom_or_overshoot_mtco2e": {"type": "number"}
+              }
+            }
+          }
+        },
+        "macro": {
+          "type": "object",
+          "properties": {
+            "gdp_delta_pct": {"type": "number"},
+            "employment_delta_thousands": {"type": "number"},
+            "debt_ratio_year5_pct": {"type": "number"}
+          }
+        },
+        "protected_groups": {
+          "type": "object",
+          "description": "EqIA proxies",
+          "properties": {
+            "disabled": {"type": "number"},
+            "pensioners": {"type": "number"},
+            "families_with_children": {"type": "number"}
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "created_at": {"type": "string", "format": "date-time"},
+        "agent_version": {"type": "string"},
+        "computation_time_seconds": {"type": "number"},
+        "notes": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  }
+}
