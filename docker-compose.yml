@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: albion-postgres
+    environment:
+      POSTGRES_DB: albion
+      POSTGRES_USER: albion
+      POSTGRES_PASSWORD: albion_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schemas:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U albion"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Python API Backend
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: albion-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://albion:albion_dev_password@postgres:5432/albion
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - ./albion:/app/albion
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./certs:/app/certs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn albion.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: albion-web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api
+    command: npm run dev
+
+volumes:
+  postgres_data:
