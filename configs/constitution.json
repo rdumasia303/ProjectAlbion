@@ -1,0 +1,75 @@
+{
+  "version": "constitution/v1",
+  "fiscal_rules": {
+    "source": "OBR/EFO/2025-03",
+    "debt_rule": "falling_by_year_5",
+    "borrowing_rule": "within_envelope",
+    "headroom_required_bn_gbp": 5.0
+  },
+  "carbon_budgets": {
+    "sixth": {
+      "total_mtco2e": 965,
+      "years": "2033-2037"
+    }
+  },
+  "devolution": {
+    "scotland": {
+      "income_tax_bands": "devolved",
+      "income_tax_rates": "devolved"
+    },
+    "wales": {
+      "income_tax_bands": "partial"
+    },
+    "northern_ireland": {
+      "corporation_tax": "devolved"
+    },
+    "ukwide": ["VAT", "NICs", "ExciseDuties", "InheritanceTax", "CGT"],
+    "barnett_formula": {
+      "enabled": true,
+      "scotland_population_share": 0.084,
+      "wales_population_share": 0.048,
+      "northern_ireland_population_share": 0.028
+    }
+  },
+  "equality": {
+    "psed": {
+      "enabled": true,
+      "warn_ratio": 1.5,
+      "protected_characteristics": [
+        "age", "disability", "gender_reassignment", "marriage_civil_partnership",
+        "pregnancy_maternity", "race", "religion_belief", "sex", "sexual_orientation"
+      ]
+    },
+    "require_eqia_for": ["benefits", "healthcare", "education"]
+  },
+  "diversity": {
+    "k": 5,
+    "epsilon_additive": 0.02,
+    "weights": {
+      "dist": 0.35,
+      "regional": 0.25,
+      "climate": 0.25,
+      "system": 0.15
+    },
+    "quotas": {
+      "low_income_advantaged": 1,
+      "north_east_prioritised": 1,
+      "climate_ambitious": 1
+    },
+    "distance_metric": "euclidean"
+  },
+  "security": {
+    "require_signatures": true,
+    "sigstore_identity_pattern": "^albion-engine@.*",
+    "kill_switch_quorum": 2,
+    "drift_detection_threshold": 0.1
+  },
+  "data_sources": {
+    "obr_efo_date": "2025-03",
+    "pesa_year": "2025",
+    "ons_etb_year": "2024",
+    "desnz_emissions_year": "2024",
+    "population_estimate_year": "2024"
+  },
+  "effective_from": "2025-01-01T00:00:00Z"
+}

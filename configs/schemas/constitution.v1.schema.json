@@ -1,0 +1,291 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://albion.gov.uk/schemas/constitution/v1",
+  "title": "ALBION Constitution",
+  "description": "Legal and policy constraints governing the options engine",
+  "type": "object",
+  "required": ["version", "fiscal_rules", "carbon_budgets", "devolution", "equality", "diversity"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^constitution/v[0-9]+$"
+    },
+    "fiscal_rules": {
+      "type": "object",
+      "required": ["source", "debt_rule", "borrowing_rule"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "e.g., OBR/EFO/2025-03"
+        },
+        "debt_rule": {
+          "type": "string",
+          "enum": ["falling_by_year_5", "below_threshold", "custom"],
+          "description": "Primary fiscal rule"
+        },
+        "debt_threshold_pct_gdp": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "borrowing_rule": {
+          "type": "string",
+          "enum": ["within_envelope", "below_threshold", "custom"]
+        },
+        "borrowing_envelope_bn_gbp": {
+          "type": "number"
+        },
+        "headroom_required_bn_gbp": {
+          "type": "number",
+          "description": "Required headroom against fiscal rules",
+          "default": 5.0
+        }
+      }
+    },
+    "carbon_budgets": {
+      "type": "object",
+      "description": "Legal carbon budget limits from Carbon Budget Orders",
+      "properties": {
+        "fourth": {
+          "type": "object",
+          "properties": {
+            "total_mtco2e": {"type": "number"},
+            "years": {"type": "string"}
+          }
+        },
+        "fifth": {
+          "type": "object",
+          "properties": {
+            "total_mtco2e": {"type": "number"},
+            "years": {"type": "string"}
+          }
+        },
+        "sixth": {
+          "type": "object",
+          "required": ["total_mtco2e", "years"],
+          "properties": {
+            "total_mtco2e": {
+              "type": "number",
+              "description": "965 MtCO2e for 2033-2037"
+            },
+            "years": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{4}$"
+            }
+          }
+        }
+      }
+    },
+    "devolution": {
+      "type": "object",
+      "description": "Reserved vs devolved competences",
+      "properties": {
+        "scotland": {
+          "type": "object",
+          "properties": {
+            "income_tax_bands": {
+              "type": "string",
+              "enum": ["devolved", "reserved"]
+            },
+            "income_tax_rates": {
+              "type": "string",
+              "enum": ["devolved", "reserved"]
+            }
+          }
+        },
+        "wales": {
+          "type": "object",
+          "properties": {
+            "income_tax_bands": {
+              "type": "string",
+              "enum": ["devolved", "reserved", "partial"]
+            }
+          }
+        },
+        "northern_ireland": {
+          "type": "object",
+          "properties": {
+            "corporation_tax": {
+              "type": "string",
+              "enum": ["devolved", "reserved"]
+            }
+          }
+        },
+        "ukwide": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["VAT", "NICs", "CorpTax", "ExciseDuties", "InheritanceTax", "CGT"]
+          },
+          "description": "Taxes that are UK-wide (not devolved)"
+        },
+        "barnett_formula": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "scotland_population_share": {"type": "number"},
+            "wales_population_share": {"type": "number"},
+            "northern_ireland_population_share": {"type": "number"}
+          }
+        }
+      }
+    },
+    "equality": {
+      "type": "object",
+      "description": "Equality Act 2010 / PSED requirements",
+      "properties": {
+        "psed": {
+          "type": "object",
+          "required": ["enabled"],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Public Sector Equality Duty"
+            },
+            "warn_ratio": {
+              "type": "number",
+              "minimum": 1.0,
+              "description": "Trigger EqIA if protected group impact > warn_ratio × general impact"
+            },
+            "protected_characteristics": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "age", "disability", "gender_reassignment", "marriage_civil_partnership",
+                  "pregnancy_maternity", "race", "religion_belief", "sex", "sexual_orientation"
+                ]
+              },
+              "description": "Protected characteristics from Equality Act 2010"
+            }
+          }
+        },
+        "require_eqia_for": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["benefits", "healthcare", "education", "all_major_changes"]
+          }
+        }
+      }
+    },
+    "diversity": {
+      "type": "object",
+      "required": ["k", "epsilon_additive", "weights"],
+      "description": "DNOS selector parameters",
+      "properties": {
+        "k": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 10,
+          "description": "Number of diverse options to select"
+        },
+        "epsilon_additive": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 0.1,
+          "description": "Near-optimality threshold (e.g., 0.02 = within 2%)"
+        },
+        "weights": {
+          "type": "object",
+          "required": ["dist", "regional", "climate", "system"],
+          "properties": {
+            "dist": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Weight for distributional diversity"
+            },
+            "regional": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Weight for regional diversity"
+            },
+            "climate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Weight for climate pathway diversity"
+            },
+            "system": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Weight for policy structure diversity"
+            }
+          }
+        },
+        "quotas": {
+          "type": "object",
+          "description": "Required representation guarantees",
+          "properties": {
+            "low_income_advantaged": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of plans that must advantage bottom 3 deciles"
+            },
+            "north_east_prioritised": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of plans that must prioritise North East region"
+            },
+            "climate_ambitious": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of plans with >20% emissions reduction"
+            }
+          }
+        },
+        "distance_metric": {
+          "type": "string",
+          "enum": ["euclidean", "manhattan", "cosine"],
+          "default": "euclidean"
+        },
+        "kernel_bandwidth": {
+          "type": "number",
+          "minimum": 0,
+          "description": "RBF kernel bandwidth for DPP (auto if null)"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "require_signatures": {
+          "type": "boolean",
+          "description": "Require Sigstore signatures on all artifacts"
+        },
+        "sigstore_identity_pattern": {
+          "type": "string",
+          "description": "Regex pattern for allowed Sigstore identities"
+        },
+        "kill_switch_quorum": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of approvals required to freeze system"
+        },
+        "drift_detection_threshold": {
+          "type": "number",
+          "description": "Data drift threshold for automatic alerts"
+        }
+      }
+    },
+    "data_sources": {
+      "type": "object",
+      "description": "Expected data source versions",
+      "properties": {
+        "obr_efo_date": {"type": "string"},
+        "pesa_year": {"type": "string"},
+        "ons_etb_year": {"type": "string"},
+        "desnz_emissions_year": {"type": "string"},
+        "population_estimate_year": {"type": "string"}
+      }
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this constitution takes effect"
+    }
+  }
+}
